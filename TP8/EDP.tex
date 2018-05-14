@@ -1,0 +1,147 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}      % accents
+\usepackage[T1]{fontenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{subfigure}       % graphiques
+\usepackage{amsmath}               % texte dans les equations
+\usepackage{indentfirst}           % retrait de paragraphes
+\usepackage[english]{babel}         % langue
+%\usepackage{vmargin}               % mise en page
+\usepackage{verbatim}              % inclusion de codes
+\usepackage{makeidx} 
+\usepackage[]{algorithm2e}
+%\usepackage{supertabular}          % gros tableaux
+%\usepackage{rotating}
+
+%\setpapersize{A4}
+\date{GP3 - 2018}
+
+\newlength\epaisLigne
+\newcommand\Ghline{\noalign{\global\epaisLigne\arrayrulewidth\global\arrayrulewidth 1pt} \hline \noalign{\global\arrayrulewidth\epaisLigne}}
+
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{elseif}{else}{end}
+\SetKwFor{While}{while}{}{end}
+
+\SetKwFor{For}{for}{}{end}
+%\makeindex
+\textwidth 15 cm \oddsidemargin 0 cm
+\begin{document}
+\title {Solving the 1D Heat equation\\Modelling the heat evolution inside a wall}
+\maketitle
+%\begin{minipage}{\textwidth}
+%\printindex
+%\end{minipage}
+
+The Heat equation is a Partial Differential Equation (PDE) modelling the evolution of the heat inside a solid body:
+
+$$\frac{\partial T}{\partial t}=\frac{1}{\rho C}\nabla.\Big(k\nabla T\Big) $$
+
+With the thermal conductivity $k$, the density $\rho$ and the specific heat capacity $C$.\\
+In the 1D case and with $k$ constant, it can be reduced to:
+
+$$\frac{\partial T}{\partial t}=\frac{k}{\rho C}\frac{\partial^2 T}{\partial x^2}$$
+
+We will study a wall of width $e=35cm$ of concrete ($k=0.28W/m/K$, $\rho=600kg.m^{-3}$ and $C=1kJ/K/kg$) with two different domains (exterior on the left and interior on the right) of respective temperature $T_{ext}$ and $T_{int}$ on each side :
+\begin{itemize}
+\item $T_{int} = 300 K$
+\item $T_{ext} =  290 - 5 \sin(\frac{2 \pi t}{24 \times 3600})$\\
+\end{itemize}
+
+In order to keep thing simple for today, we will use finite difference, and more precisely:
+\begin{itemize}
+\item Forward first order finite difference in time (also called explicit Euler )
+\item Central second order finite difference in space
+\item First order finite difference in space at the boundaries\\
+\end{itemize}
+
+In time we will need an initial condition, wich is chosen to be constant in all the wall : $T(x,t=0)=T_{ext}$.\\
+Moreover, the time step $\Delta t$ is constrained. We will take $\Delta t=\frac{\Delta x^2}{4a}$ with $a=\frac{k}{\rho C}$\\
+
+In space we will need two boundary conditions. In order to impose them, the first point and the last point will answer to a specific equation, one of: 
+\begin{itemize}
+\item Dirichlet: $T = T_{\text{bnd}}$
+\item Neuman: $-k\nabla T =\phi_{\text{bnd}}$
+\item Robin: $-k\nabla T + hT=\phi_{\text{bnd}} + h T_{\text{bnd}}$
+\end{itemize}
+with a solar flux $\phi_{ext}=10W.m^{-2}$, an interior flux $\phi_{int}=100W.m^{-2}$ and a convective coefficient $h=10W.m^{-2}.K^{-1}$.\\
+
+\newpage
+The objective of your work is to test the following sets of boundary conditions:
+\begin{enumerate}
+\item Dirichlet on both sides
+\item Neumann on the left and Dirichlet on the right
+\item Robin on the left and Dirichlet on the right
+\item Robin on both sides\\
+\end{enumerate}
+
+The complete program should be similar to that:\\
+\noindent\fbox{\parbox{\linewidth \fboxrule-2\fboxsep}{
+\begin{algorithm}[H]
+ %\KwData{this text}
+ 
+Initialize physical constants \;
+Initialize parameters (tmax, precision, $nx$, etc.)  \;
+Initialize numerical constants ($\Delta x$, $\Delta t$, etc.))\;
+Initialize variables: t, T, etc.\;
+\While{$t<tmax$}{
+ Compute $T_{ext}$ \;
+ Compute $T$ inside (except boundary conditions) \;
+ Compute $T$ at the boundaries \;
+ Advance time \;
+}
+Print valuable infos \;
+Plot the evolution of the temperature norm in time along with the exterior temperature\;
+Plot the final temperature in space\;
+\end{algorithm}
+}}\\~\\
+
+The temperature norm  will be computed as $\left(\frac{1}{e}\int_{0}^{e} T^2dx\right)^\frac{1}{2}$\\
+
+Complete the following tasks (in any order you want)
+\begin{itemize}
+\item 	Write a file tools.py containing:
+\begin{itemize}
+\item 	a function norm($T$, $\Delta x$, $e$) that return the norm of the current temperature
+\end{itemize}
+\item 	Write a file finite.py containing:
+\begin{itemize}
+\item 	a function dder($T$, $\Delta x$) that return the second derivative of T inside
+\item 	the functions apply\_bnd\_i($T$, $T_{int}$, $T_{ext}$, $k$, $h$, $\phi_{int}$, $\phi_{ext}$, $\Delta x$)\\
+that apply the ith boundary condition to $T$ and return nothing
+\end{itemize}
+\item 	Write a file equation.py containing:
+\begin{itemize}
+\item 	a function heat($T$, $\Delta t$, $\Delta x$, $k$, $\rho$, $C$) that compute a new T inside (and zeros at the boundaries) and return this new T
+\end{itemize}
+\item 	Write a file program.py containing:
+\begin{itemize}
+\item       a function T\_ext(t) that compute the exterior temperature
+\item 	the main program \\
+\end{itemize}
+\end{itemize}
+\newpage
+
+Bellow your program add a large comment, answering the following questions:
+\begin{enumerate}
+\item How much time does it take to converge toward a ``stationnary'' state ?
+\item Does the temperature of the wall and the exterior temperature have the same frequency ? Why ?
+\item Does the temperature of the wall and the exterior temperature are synchronized ? Why ?\\
+\item Does the number of points have an influence on the final temperature ?
+\item What is the order of convergence of our discretisation ?
+\item Why the time step is constrained ?\\
+\item Can you give a physical interpretation of the 3 type of boundary conditions\\~\\
+\end{enumerate}
+%
+%The notation may (or may not) be as follow
+%\begin{itemize}
+%\item 1pt if the code \textbf{runs} (whatever might be the results)
+%\item 1pt if the code gives the good results (on one case)
+%\item 1pt for each good plot of each set of boundary conditions (8pt in total)
+%\item 3pt for each function (good result, well written, commented) (24pt in total)
+%\item 5pt for the main program (good result, well written, commented)
+%\item 1pt for questions 1,2 and 3
+%\item 2pt for questions 4, 5 and 6
+%\item 3pt for questions 7
+%\end{itemize}
+%For a total of 51pt
+\end{document}
